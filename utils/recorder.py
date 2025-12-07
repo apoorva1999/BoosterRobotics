@@ -11,7 +11,8 @@ class Recorder:
     def __init__(self, cfg):
         self.cfg = cfg
         name = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
-        self.dir = os.path.join("logs", name)
+        run_name = f"{self.cfg['basic']['task']}-{name}"
+        self.dir = os.path.join("logs", run_name)
         os.makedirs(self.dir)
         self.model_dir = os.path.join(self.dir, "nn")
         os.mkdir(self.model_dir)

@@ -3,8 +3,9 @@ import numpy as np
 
 
 def apply_randomization(tensor, params, return_noise=False):
-    if params == None:
-        return tensor
+    if params is None:
+        # No randomization; return original tensor and zero noise when requested.
+        return (tensor, 0.0) if return_noise else tensor
 
     if params["distribution"] == "gaussian":
         mu, var = params["range"]

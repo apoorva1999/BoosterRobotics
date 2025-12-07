@@ -1,0 +1,397 @@
+basic:
+  checkpoint: null
+  headless: true
+  max_iterations: 10000
+  sim_device: "cuda:0"
+  rl_device: "cuda:0"
+  seed: 42
+  description: "Humanoid kicking task built on T1 robot."
+
+env:
+  num_envs: 1024
+  num_observations: 49
+  num_privileged_obs: 9
+  num_actions: 12
+  env_spacing: 1.0
+
+runner:
+  horizon_length: 24
+  mini_epochs: 20
+  save_interval: 100
+  use_wandb: true
+
+viewer:
+  pos: [3., -3., 2.]
+  lookat: [0., 0., 0.]
+  record_video: true
+  record_interval: 5.
+  record_env_idx: 0
+
+algorithm:
+  learning_rate: 2.5e-4
+  gamma: 0.995
+  lam: 0.95
+  bound_coef: 1.0
+  entropy_coef: -0.01
+  symmetric_coef: 10.
+  desired_kl: 0.01
+
+sim:
+  dt: 0.002
+  substeps: 1
+  up_axis: "z"
+  gravity: [0.0, 0.0, -9.81]
+  physics_engine: "physx"
+  physx:
+    num_threads: 4
+    solver_type: 1
+    num_position_iterations: 4
+    num_velocity_iterations: 1
+    contact_offset: 0.02
+    rest_offset: 0.0
+    bounce_threshold_velocity: 0.2
+    max_depenetration_velocity: 100.0
+    default_buffer_size_multiplier: 5.0
+    max_gpu_contact_pairs: 8388608
+    num_subscenes: 4
+    contact_collection: 1
+
+asset:
+  file: "resources/T1/T1_locomotion.urdf"
+  mujoco_file: "resources/T1/T1_locomotion.xml"
+  name: "T1"
+  base_name: "Trunk"
+  foot_names: ["left_foot_link", "right_foot_link"]
+  disable_gravity: false
+  default_dof_drive_mode: 3
+  collapse_fixed_joints: true
+  fix_base_link: false
+  self_collisions: 0
+  replace_cylinder_with_capsule: false
+  flip_visual_attachments: false
+  density: 0.001
+  angular_damping: 0.
+  linear_damping: 0.
+  max_angular_velocity: 1000.
+  max_linear_velocity: 1000.
+  armature: 0.
+  thickness: 0.01
+  feet_edge_pos: [[0.1215, 0.05, -0.03],
+                  [0.1215, -0.05, -0.03],
+                  [-0.1015, 0.05, -0.03],
+                  [-0.1015, -0.05, -0.03]]
+
+init_state:
+  pos: [0.0, 0.0, 0.72]
+  rot: [0.0, 0.0, 0.0, 1.0]
+  lin_vel: [0.0, 0.0, 0.0]
+  ang_vel: [0.0, 0.0, 0.0]
+  default_joint_angles: {"Hip_Pitch": -0.2, "Knee_Pitch": 0.4, "Ankle_Pitch": -0.25, "default": 0.}
+
+control:
+  stiffness: {"Hip": 200., "Knee": 200., "Ankle": 50.}
+  damping: {"Hip": 5., "Knee": 5., "Ankle": 1.}
+  action_scale: 1.
+  decimation: 10
+
+terrain:
+  type: "trimesh"
+  static_friction: 1.0
+  dynamic_friction: 1.0
+  restitution: 0.
+  terrain_length: 10.
+  terrain_width: 10.
+  border_size: 5.
+  num_terrains: 8
+  terrain_proportions: [0.0, 0.0, 0.5, 0.5]
+  slope: 0.1
+  random_height: 0.05
+  discrete_height: 0.02
+  horizontal_scale: 0.1
+  vertical_scale: 0.005
+  slope_threshold: 2.0
+
+commands:
+  num_commands: 3   # ball_x, ball_y, goal_yaw
+  still_proportion: 0.05
+  ball_x: [0.5, 1.2]     # forward distance to ball [m]
+  ball_y: [-0.25, 0.25]  # lateral offset to ball [m]
+  goal_yaw: [-0.3, 0.3]  # target goal direction [rad]
+  resampling_time_s: [4., 6.]
+  gait_frequency: [1.0, 2.0]
+  # curriculum placeholders for T1 compatibility
+  curriculum: false
+  update_rate: 0.1
+  lin_vel_levels: 10
+  ang_vel_levels: 10
+  lin_vel_x_resolution: 0.2
+  lin_vel_y_resolution: 0.1
+  ang_vel_resolution: 0.2
+  episode_length_toler: 0.1
+  lin_vel_x_toler: 0.4
+  lin_vel_y_toler: 0.2
+  ang_vel_yaw_toler: 0.2
+
+normalization:
+  gravity: 1.0
+  lin_vel: 1.0
+  ang_vel: 1.0
+  dof_pos: 1.0
+  dof_vel: 0.1
+  filter_weight: 0.1
+  clip_actions: 1.
+
+noise:
+  gravity:
+    range: [0., 0.01]
+    operation: "additive"
+    distribution: "gaussian"
+  ang_vel:
+    range: [0., 0.05]
+    operation: "additive"
+    distribution: "gaussian"
+  dof_pos:
+    range: [0., 0.01]
+    operation: "additive"
+    distribution: "gaussian"
+  dof_vel:
+    range: [0., 0.1]
+    operation: "additive"
+    distribution: "gaussian"
+
+randomization:
+  init_dof_pos:
+    range: [0., 0.05]
+    operation: "additive"
+    distribution: "gaussian"
+  init_base_pos_xy:
+    range: [-1., 1.]
+    operation: "additive"
+    distribution: "uniform"
+  init_base_lin_vel_xy:
+    range: [0., 0.1]
+    operation: "additive"
+    distribution: "gaussian"
+  kick_interval_s: 2.
+  kick_lin_vel:
+    range: [0., 0.1]
+    operation: "additive"
+    distribution: "gaussian"
+  kick_ang_vel:
+    range: [0., 0.02]
+    operation: "additive"
+    distribution: "gaussian"
+basic:
+  checkpoint: null
+  headless: true
+  max_iterations: 10000
+  sim_device: "cuda:0"
+  rl_device: "cuda:0"
+  seed: 42
+  description: "Humanoid kicking task built on T1 robot."
+
+env:
+  num_envs: 1024
+  num_observations: 49
+  num_privileged_obs: 9
+  num_actions: 12
+  env_spacing: 1.0
+
+runner:
+  horizon_length: 24
+  mini_epochs: 20
+  save_interval: 100
+  use_wandb: true
+
+viewer:
+  pos: [3., -3., 2.]
+  lookat: [0., 0., 0.]
+  record_video: true
+  record_interval: 5.
+  record_env_idx: 0
+
+algorithm:
+  learning_rate: 2.5e-4
+  gamma: 0.995
+  lam: 0.95
+  bound_coef: 1.0
+  entropy_coef: -0.01
+  symmetric_coef: 10.
+  desired_kl: 0.01
+
+sim:
+  dt: 0.002
+  substeps: 1
+  up_axis: "z"
+  gravity: [0.0, 0.0, -9.81]
+  physics_engine: "physx"
+  physx:
+    num_threads: 4
+    solver_type: 1
+    num_position_iterations: 4
+    num_velocity_iterations: 1
+    contact_offset: 0.02
+    rest_offset: 0.0
+    bounce_threshold_velocity: 0.2
+    max_depenetration_velocity: 100.0
+    default_buffer_size_multiplier: 5.0
+    max_gpu_contact_pairs: 8388608
+    num_subscenes: 4
+    contact_collection: 1
+
+asset:
+  file: "resources/T1/T1_locomotion.urdf"
+  mujoco_file: "resources/T1/T1_locomotion.xml"
+  name: "T1"
+  base_name: "Trunk"
+  foot_names: ["left_foot_link", "right_foot_link"]
+  disable_gravity: false
+  default_dof_drive_mode: 3
+  collapse_fixed_joints: true
+  fix_base_link: false
+  self_collisions: 0
+  replace_cylinder_with_capsule: false
+  flip_visual_attachments: false
+  density: 0.001
+  angular_damping: 0.
+  linear_damping: 0.
+  max_angular_velocity: 1000.
+  max_linear_velocity: 1000.
+  armature: 0.
+  thickness: 0.01
+  feet_edge_pos: [[0.1215, 0.05, -0.03],
+                  [0.1215, -0.05, -0.03],
+                  [-0.1015, 0.05, -0.03],
+                  [-0.1015, -0.05, -0.03]]
+
+init_state:
+  pos: [0.0, 0.0, 0.72]
+  rot: [0.0, 0.0, 0.0, 1.0]
+  lin_vel: [0.0, 0.0, 0.0]
+  ang_vel: [0.0, 0.0, 0.0]
+  default_joint_angles: {"Hip_Pitch": -0.2, "Knee_Pitch": 0.4, "Ankle_Pitch": -0.25, "default": 0.}
+
+control:
+  stiffness: {"Hip": 200., "Knee": 200., "Ankle": 50.}
+  damping: {"Hip": 5., "Knee": 5., "Ankle": 1.}
+  action_scale: 1.
+  decimation: 10
+
+terrain:
+  type: "trimesh"
+  static_friction: 1.0
+  dynamic_friction: 1.0
+  restitution: 0.
+  terrain_length: 10.
+  terrain_width: 10.
+  border_size: 5.
+  num_terrains: 8
+  terrain_proportions: [0.0, 0.0, 0.5, 0.5]
+  slope: 0.1
+  random_height: 0.05
+  discrete_height: 0.02
+  horizontal_scale: 0.1
+  vertical_scale: 0.005
+  slope_threshold: 2.0
+
+commands:
+  num_commands: 3   # ball_x, ball_y, goal_yaw
+  still_proportion: 0.05
+  ball_x: [0.5, 1.2]     # forward distance to ball [m]
+  ball_y: [-0.25, 0.25]  # lateral offset to ball [m]
+  goal_yaw: [-0.3, 0.3]  # target goal direction [rad]
+  resampling_time_s: [4., 6.]
+  gait_frequency: [1.0, 2.0]
+  # curriculum placeholders for T1 compatibility
+  curriculum: false
+  update_rate: 0.1
+  lin_vel_levels: 10
+  ang_vel_levels: 10
+  lin_vel_x_resolution: 0.2
+  lin_vel_y_resolution: 0.1
+  ang_vel_resolution: 0.2
+  episode_length_toler: 0.1
+  lin_vel_x_toler: 0.4
+  lin_vel_y_toler: 0.2
+  ang_vel_yaw_toler: 0.2
+
+normalization:
+  gravity: 1.0
+  lin_vel: 1.0
+  ang_vel: 1.0
+  dof_pos: 1.0
+  dof_vel: 0.1
+  filter_weight: 0.1
+  clip_actions: 1.
+
+noise:
+  gravity:
+    range: [0., 0.01]
+    operation: "additive"
+    distribution: "gaussian"
+  ang_vel:
+    range: [0., 0.05]
+    operation: "additive"
+    distribution: "gaussian"
+  dof_pos:
+    range: [0., 0.01]
+    operation: "additive"
+    distribution: "gaussian"
+  dof_vel:
+    range: [0., 0.1]
+    operation: "additive"
+    distribution: "gaussian"
+
+randomization:
+  init_dof_pos:
+    range: [0., 0.05]
+    operation: "additive"
+    distribution: "gaussian"
+  init_base_pos_xy:
+    range: [-1., 1.]
+    operation: "additive"
+    distribution: "uniform"
+  init_base_lin_vel_xy:
+    range: [0., 0.1]
+    operation: "additive"
+    distribution: "gaussian"
+  kick_interval_s: 2.
+  kick_lin_vel:
+    range: [0., 0.1]
+    operation: "additive"
+    distribution: "gaussian"
+  kick_ang_vel:
+    range: [0., 0.02]
+    operation: "additive"
+    distribution: "gaussian"
+  push_interval_s: 5.
+  push_duration_s: 1.
+  push_force:
+    range: [0., 5.]
+    operation: "additive"
+    distribution: "gaussian"
+  push_torque:
+    range: [0., 1.]
+    operation: "additive"
+    distribution: "gaussian"
+
+rewards:
+  scales:
+    survival: 0.2
+    ball_approach: 3.0
+    kick_velocity: 5.0
+    goal_align: 1.0
+    feet_clearance: 0.5
+    base_height: -10.0
+    orientation: -3.0
+    torques: -2.e-4
+    action_rate: -0.5
+    dof_vel: -1.e-4
+  episode_length_s: 15.
+  terminate_height: 0.45
+  terminate_vel: 50.
+  terminate_contacts_on: []
+  penalize_contacts_on: ["Trunk", "H1", "H2", "AL", "AR", "Waist", "Hip", "Shank", "Ankle"]
+  only_positive_rewards: true
+  tracking_sigma: 0.25
+  base_height_target: 0.68
